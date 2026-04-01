@@ -470,7 +470,7 @@ describe("Financial Records CRUD", () => {
     expect(res.body.data.records.length).toBeGreaterThanOrEqual(2);
     expect(res.body.data.pagination.page).toBe(1);
     expect(res.body.data.pagination.total).toBeDefined();
-    expect(res.body.data.pagination.nextCursor).toBeDefined();
+    expect(res.body.data.pagination.totalPages).toBeDefined();
   });
 
   it("lists records with cursor pagination", async () => {

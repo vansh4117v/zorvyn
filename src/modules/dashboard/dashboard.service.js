@@ -93,7 +93,7 @@ async function getMonthlyTrends(year) {
   }
 
   records.forEach((record) => {
-    const month = record.date.getMonth();
+    const month = record.date.getUTCMonth();
     const amount = Number(record.amount);
     if (record.type === "INCOME") {
       months[month].income += amount;
@@ -208,7 +208,7 @@ async function getCategoryTrends({ year, type } = {}) {
         })),
       };
     }
-    const month = r.date.getMonth();
+    const month = r.date.getUTCMonth();
     catData[cid].months[month].total += Number(r.amount);
   });
 
