@@ -82,7 +82,7 @@ The server runs on `http://localhost:3000` by default.
 
 | Method | Path                 | Auth | Roles | Description                              |
 |--------|----------------------|------|-------|------------------------------------------|
-| POST   | `/api/auth/register` | No   | —     | Register a new user (defaults to VIEWER)  |
+| POST   | `/api/auth/register` | No   | —     | Register a new user (always VIEWER; role is set by ADMIN via `PATCH /api/users/:id`) |
 | POST   | `/api/auth/login`    | No   | —     | Login and receive JWT token               |
 | GET    | `/api/auth/me`       | Yes  | All   | Get current authenticated user profile    |
 
@@ -177,9 +177,10 @@ All endpoints return a consistent JSON shape:
 
 - **Soft delete for financial records:** Records are never permanently removed — `isDeleted` is set to `true`. This preserves data integrity and allows audit trails. All queries filter out soft-deleted records automatically.
 - **Category deletion guard:** A category cannot be deleted if any financial records (including soft-deleted ones) reference it. This prevents orphaned records and maintains referential integrity. Returns 409 Conflict.
-- **JWT-only auth:** Stateless authentication using JWT tokens. No session storage or refresh token mechanism — kept simple for the scope of this project. Tokens expire based on the `JWT_EXPIRES_IN` env var (default 24h).
+- **JWT auth with refresh token rotation:** Short-lived access tokens (default 15m) paired with long-lived opaque refresh tokens (default 7d) stored in the database. On each refresh, the old token is revoked and a new one is issued (rotation). Logout explicitly revokes the refresh token.
 - **Inactive user blocking:** Even with a valid JWT, inactive users receive 403 on all authenticated requests. This allows admins to disable accounts without invalidating tokens.
 - **Admin self-delete prevention:** An admin cannot delete their own account to prevent accidental lockout.
+- **Registration always creates VIEWER:** The public register endpoint does not accept a `role` field. All new users start as VIEWER. An ADMIN must promote them via `PATCH /api/users/:id`. The first ADMIN is bootstrapped via `npm run db:seed`.
 - **Password hashing:** bcrypt with 10 salt rounds for secure password storage. `passwordHash` is never included in any API response.
 - **Pagination:** `GET /api/records` and `GET /api/users` support `page` and `limit` query params. Dashboard recent-activity supports `limit`.
 - **Monthly trends zero-fill:** All 12 months are always returned, with 0 values for months without data — the frontend can render consistent charts without gap handling.

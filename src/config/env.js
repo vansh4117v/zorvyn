@@ -6,7 +6,6 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url("DATABASE_URL must be a valid connection string"),
   JWT_SECRET: z.string().min(8, "JWT_SECRET must be at least 8 characters"),
   JWT_EXPIRES_IN: z.string().default("15m"),
-  JWT_REFRESH_SECRET: z.string().min(8, "JWT_REFRESH_SECRET must be at least 8 characters"),
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
   LOG_LEVEL: z.enum(["error", "warn", "info", "http", "verbose", "debug", "silly"]).default("http"),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(900000),

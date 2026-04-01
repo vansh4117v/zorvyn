@@ -24,7 +24,7 @@ function getRefreshExpiry() {
   return new Date(Date.now() + val * ms);
 }
 
-async function register({ name, email, password, role }) {
+async function register({ name, email, password }) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     throw new AppError(409, "Email already registered");
@@ -37,7 +37,7 @@ async function register({ name, email, password, role }) {
       name,
       email,
       passwordHash,
-      role: role || "VIEWER",
+      role: "VIEWER",
     },
     select: {
       id: true,

@@ -33,25 +33,23 @@ describe("Health Check", () => {
 });
 
 describe("Auth - Register", () => {
-  it("registers an admin user", async () => {
+  it("registers an admin user (defaults to VIEWER, role promoted separately)", async () => {
     const res = await request(app).post("/api/auth/register").send({
       name: "Admin User",
       email: "admin@test.com",
       password: "Password123",
-      role: "ADMIN",
     });
     expect(res.status).toBe(201);
     expect(res.body.success).toBe(true);
-    expect(res.body.data.role).toBe("ADMIN");
+    expect(res.body.data.role).toBe("VIEWER");
     adminId = res.body.data.id;
   });
 
-  it("registers an analyst user", async () => {
+  it("registers an analyst user (defaults to VIEWER)", async () => {
     const res = await request(app).post("/api/auth/register").send({
       name: "Analyst User",
       email: "analyst@test.com",
       password: "Password123",
-      role: "ANALYST",
     });
     expect(res.status).toBe(201);
     analystId = res.body.data.id;
@@ -75,6 +73,17 @@ describe("Auth - Register", () => {
       password: "Password123",
     });
     expect(res.status).toBe(409);
+  });
+
+  it("ignores role field in registration body (always VIEWER)", async () => {
+    const res = await request(app).post("/api/auth/register").send({
+      name: "Role Attempt",
+      email: "roleattempt@test.com",
+      password: "Password123",
+      role: "ADMIN",
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.data.role).toBe("VIEWER");
   });
 
   it("rejects invalid input (missing name)", async () => {
@@ -106,6 +115,11 @@ describe("Auth - Register", () => {
 });
 
 describe("Auth - Login", () => {
+  beforeAll(async () => {
+    await prisma.user.update({ where: { id: adminId }, data: { role: "ADMIN" } });
+    await prisma.user.update({ where: { id: analystId }, data: { role: "ANALYST" } });
+  });
+
   it("logs in admin and returns access + refresh tokens", async () => {
     const res = await request(app).post("/api/auth/login").send({
       email: "admin@test.com",
