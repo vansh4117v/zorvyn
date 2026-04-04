@@ -24,12 +24,13 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env` with your PostgreSQL connection string and a JWT secret:
+Edit `.env` with your PostgreSQL connection string and JWT secret. See `.env.example` for all available variables:
 
 ```
 DATABASE_URL="postgresql://user:password@localhost:5432/finance_dashboard?schema=public"
 JWT_SECRET="your-super-secret-jwt-key-here"
-JWT_EXPIRES_IN="24h"
+JWT_EXPIRES_IN="15m"
+JWT_REFRESH_EXPIRES_IN="7d"
 PORT=3000
 ```
 
@@ -80,11 +81,13 @@ The server runs on `http://localhost:3000` by default.
 
 ### Auth
 
-| Method | Path                 | Auth | Roles | Description                              |
-|--------|----------------------|------|-------|------------------------------------------|
-| POST   | `/api/auth/register` | No   | —     | Register a new user (always VIEWER; role is set by ADMIN via `PATCH /api/users/:id`) |
-| POST   | `/api/auth/login`    | No   | —     | Login and receive JWT token               |
-| GET    | `/api/auth/me`       | Yes  | All   | Get current authenticated user profile    |
+| Method | Path                  | Auth | Roles | Description                              |
+|--------|-----------------------|------|-------|------------------------------------------|
+| POST   | `/api/auth/register`  | No   | —     | Register a new user (always VIEWER; role is set by ADMIN via `PATCH /api/users/:id`) |
+| POST   | `/api/auth/login`     | No   | —     | Login — returns access token + refresh token |
+| POST   | `/api/auth/refresh`   | No   | —     | Exchange refresh token for a new access + refresh token (rotation) |
+| POST   | `/api/auth/logout`    | No   | —     | Revoke refresh token                     |
+| GET    | `/api/auth/me`        | Yes  | All   | Get current authenticated user profile   |
 
 ### Users (ADMIN only)
 
