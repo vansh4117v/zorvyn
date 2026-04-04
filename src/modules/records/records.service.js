@@ -69,6 +69,7 @@ async function listRecords({ page, limit = 10, cursor, type, categoryId, startDa
       limit,
       total,
       totalPages: Math.ceil(total / limit),
+      nextCursor: records.length > 0 && skip + records.length < total ? records[records.length - 1].id : null,
     },
   };
 }
