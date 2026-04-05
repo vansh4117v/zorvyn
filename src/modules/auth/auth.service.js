@@ -116,19 +116,21 @@ async function refreshAccessToken(token) {
     throw new AppError(401, "User not found or inactive");
   }
 
-  await prisma.refreshToken.update({
-    where: { id: stored.id },
-    data: { revokedAt: new Date() },
-  });
-
-  const newAccessToken = generateAccessToken(user.id);
   const newRefreshValue = generateRefreshToken();
-  await prisma.refreshToken.create({
-    data: {
-      token: newRefreshValue,
-      userId: user.id,
-      expiresAt: getRefreshExpiry(),
-    },
+  const newAccessToken = generateAccessToken(user.id);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.refreshToken.update({
+      where: { id: stored.id },
+      data: { revokedAt: new Date() },
+    });
+    await tx.refreshToken.create({
+      data: {
+        token: newRefreshValue,
+        userId: user.id,
+        expiresAt: getRefreshExpiry(),
+      },
+    });
   });
 
   return {

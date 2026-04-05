@@ -29,24 +29,26 @@ async function updateCategory(id, data) {
 }
 
 async function deleteCategory(id) {
-  const category = await prisma.category.findUnique({ where: { id } });
-  if (!category) {
-    throw new AppError(404, "Category not found");
-  }
+  return prisma.$transaction(async (tx) => {
+    const category = await tx.category.findUnique({ where: { id } });
+    if (!category) {
+      throw new AppError(404, "Category not found");
+    }
 
-  const recordCount = await prisma.financialRecord.count({
-    where: { categoryId: id },
+    const recordCount = await tx.financialRecord.count({
+      where: { categoryId: id },
+    });
+
+    if (recordCount > 0) {
+      throw new AppError(
+        409,
+        "Cannot delete category with associated financial records"
+      );
+    }
+
+    await tx.category.delete({ where: { id } });
+    return true;
   });
-
-  if (recordCount > 0) {
-    throw new AppError(
-      409,
-      "Cannot delete category with associated financial records"
-    );
-  }
-
-  await prisma.category.delete({ where: { id } });
-  return true;
 }
 
 module.exports = {
